@@ -1,0 +1,225 @@
+-- CREACIÓN DE BASE DE DATOS VETERINARIA
+CREATE TABLE especie (
+    id_especie SERIAL PRIMARY KEY,
+    nombre_especie VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE raza (
+    id_raza SERIAL PRIMARY KEY,
+    nombre_raza VARCHAR(100) NOT NULL,
+    id_especie INTEGER NOT NULL,
+
+    CONSTRAINT fk_raza_especie
+        FOREIGN KEY (id_especie)
+        REFERENCES especie(id_especie)
+    ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+CREATE TABLE propietario (
+    id_propietario SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    telefono VARCHAR(20) UNIQUE,
+    correo VARCHAR(150) UNIQUE,
+    direccion TEXT
+);
+
+CREATE TABLE especialidad (
+    id_especialidad SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE veterinario (
+    id_veterinario SERIAL PRIMARY KEY,
+    nombres VARCHAR(100) NOT NULL,
+    apellidos VARCHAR(100) NOT NULL,
+    carne VARCHAR(50) UNIQUE NOT NULL,
+    id_especialidad INTEGER NOT NULL,
+
+    CONSTRAINT fk_veterinario_especialidad
+        FOREIGN KEY (id_especialidad)
+        REFERENCES especialidad(id_especialidad)
+    ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+-- ==========================================
+-- mascota
+CREATE TABLE mascota (
+    id_mascota SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    edad INTEGER,
+    id_especie INTEGER NOT NULL,
+    id_raza INTEGER NULL,
+    id_propietario INTEGER NOT NULL,
+
+    CONSTRAINT fk_mascota_especie
+        FOREIGN KEY (id_especie)
+        REFERENCES especie(id_especie)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+
+    CONSTRAINT fk_mascota_raza
+        FOREIGN KEY (id_raza)
+        REFERENCES raza(id_raza)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+
+    CONSTRAINT fk_mascota_propietario
+        FOREIGN KEY (id_propietario)
+        REFERENCES propietario(id_propietario)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+
+    CONSTRAINT ck_edad CHECK (edad >=0)
+);
+
+-- ==========================================
+-- cita
+
+CREATE TABLE cita (
+    id_cita SERIAL PRIMARY KEY,
+    fecha_cita DATE NOT NULL,
+    hora_cita TIME NOT NULL,
+    id_mascota INTEGER NOT NULL,
+    id_veterinario INTEGER NOT NULL,
+
+    CONSTRAINT fk_cita_mascota
+        FOREIGN KEY (id_mascota)
+        REFERENCES mascota(id_mascota)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+
+    CONSTRAINT fk_cita_veterinario
+        FOREIGN KEY (id_veterinario)
+        REFERENCES veterinario(id_veterinario)
+    ON UPDATE CASCADE ON DELETE RESTRICT
+
+    
+);
+
+-- ==========================================
+-- diagnostico/tratamiento
+
+CREATE TABLE diagnostico (
+    id_diagnostico SERIAL PRIMARY KEY,
+    informe TEXT NOT NULL,
+    id_cita INTEGER NOT NULL,
+
+    CONSTRAINT fk_diagnostico_cita
+        FOREIGN KEY (id_cita)
+        REFERENCES cita(id_cita)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+
+    CONSTRAINT uq_id_cita UNIQUE (id_cita)
+);
+
+CREATE TABLE tratamiento (
+    id_tratamiento SERIAL PRIMARY KEY,
+    dosis VARCHAR(100),
+    id_cita INTEGER NOT NULL,
+
+    CONSTRAINT fk_tratamiento_cita
+        FOREIGN KEY (id_cita)
+        REFERENCES cita(id_cita)
+    ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+-- ==========================================
+-- articulos
+
+CREATE TABLE tipo_articulo (
+    id_tipo_articulo SERIAL PRIMARY KEY,
+    tipo_nombre VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE articulo (
+    id_articulo SERIAL PRIMARY KEY,
+    nombre_articulo VARCHAR(150) NOT NULL,
+    precio_unitario NUMERIC(10,2) NOT NULL,
+    id_tipo_articulo INTEGER NOT NULL,
+
+    CONSTRAINT fk_articulo_tipo
+        FOREIGN KEY (id_tipo_articulo)
+        REFERENCES tipo_articulo(id_tipo_articulo)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+
+    CONSTRAINT ck_precio_unitario CHECK (precio_unitario >= 0.00)
+);
+
+-- ==========================================
+-- medicamento_tratamiento
+
+CREATE TABLE medicamento_tratamiento (
+    id_articulo INTEGER NOT NULL,
+    id_tratamiento INTEGER NOT NULL,
+
+    PRIMARY KEY (id_articulo, id_tratamiento),
+
+    CONSTRAINT fk_mt_articulo
+        FOREIGN KEY (id_articulo)
+        REFERENCES articulo(id_articulo)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+
+    CONSTRAINT fk_mt_tratamiento
+        FOREIGN KEY (id_tratamiento)
+        REFERENCES tratamiento(id_tratamiento)
+    ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+-- ==========================================
+-- formas de pago
+
+CREATE TABLE forma_pago (
+    id_forma_pago SERIAL PRIMARY KEY,
+    nombre_forma_pago VARCHAR(100) NOT NULL
+);
+
+-- ==========================================
+-- factura
+
+CREATE TABLE factura (
+    id_factura SERIAL PRIMARY KEY,
+    fecha_emision DATE NOT NULL,
+    sub_total NUMERIC(12,2) NOT NULL,
+    descuento_total NUMERIC(12,2) DEFAULT 0,
+    impuestos_totales NUMERIC(12,2) DEFAULT 0,
+    monto_total NUMERIC(12,2) NOT NULL,
+    id_cita INTEGER NOT NULL,
+    id_forma_pago INTEGER NOT NULL,
+
+    CONSTRAINT fk_factura_cita
+        FOREIGN KEY (id_cita)
+        REFERENCES cita(id_cita)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+
+    CONSTRAINT fk_factura_forma_pago
+        FOREIGN KEY (id_forma_pago)
+        REFERENCES forma_pago(id_forma_pago)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+
+    CONSTRAINT ck_subtotal CHECK (sub_total >= 0.00),
+    CONSTRAINT ck_descuento CHECK (descuento_total >= 0.00),
+    CONSTRAINT ck_monto CHECK (monto_total >= 0.00),
+    CONSTRAINT ck_imouesto CHECK (impuestos_totales >= 0.00)
+);
+
+-- ==========================================
+-- factura detallitos
+
+CREATE TABLE detalle_factura (
+    id_articulo INTEGER NOT NULL,
+    id_factura INTEGER NOT NULL,
+    cantidad INTEGER NOT NULL,
+    porcentaje_descuento NUMERIC(5,2) DEFAULT 0,
+    precio_unitario_cobrado NUMERIC(10,2) NOT NULL, --esto se pone por si acaso los precios suben, que las facturas antiguas no se vean afectadas
+
+    PRIMARY KEY (id_articulo, id_factura),
+
+    CONSTRAINT fk_detalle_articulo
+        FOREIGN KEY (id_articulo)
+        REFERENCES articulo(id_articulo)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+
+    CONSTRAINT fk_detalle_factura
+        FOREIGN KEY (id_factura)
+        REFERENCES factura(id_factura)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+
+    CONSTRAINT ck_cantidad CHECK (cantidad > 0)
+);
