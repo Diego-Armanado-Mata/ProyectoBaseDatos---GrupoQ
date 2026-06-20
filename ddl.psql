@@ -1,4 +1,7 @@
 -- CREACIÓN DE BASE DE DATOS VETERINARIA
+
+create database VETERINARIA;
+
 CREATE TABLE especie (
     id_especie SERIAL PRIMARY KEY,
     nombre_especie VARCHAR(100) NOT NULL
