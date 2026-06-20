@@ -1521,7 +1521,7 @@ values('2026-07-14', 60.00, 10.00, 6.50, 56.50, 140, 1);
 select * from factura;
 --fin insert factura
 
--- insert detalle_factura (120 registros)
+-- insert detalle_factura 
 insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
 values(1, 1, 1, 0.00, 25.00);
 insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
@@ -1762,46 +1762,6 @@ insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descue
 values(4, 119, 1, 0.00, 50.00);
 insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
 values(5, 120, 2, 10.00, 30.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(6, 121, 1, 0.00, 15.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(7, 122, 1, 5.00, 35.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(8, 123, 3, 0.00, 15.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(9, 124, 1, 0.00, 20.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(10, 125, 4, 20.00, 20.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(1, 126, 1, 0.00, 30.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(2, 127, 2, 5.00, 20.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(3, 128, 1, 0.00, 25.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(4, 129, 1, 0.00, 50.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(5, 130, 2, 10.00, 30.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(6, 131, 1, 0.00, 15.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(7, 132, 1, 5.00, 35.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(8, 133, 3, 0.00, 15.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(9, 134, 1, 0.00, 20.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(10, 135, 4, 20.00, 20.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(1, 136, 1, 0.00, 30.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(2, 137, 2, 5.00, 20.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(3, 138, 1, 0.00, 25.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(4, 139, 1, 0.00, 50.00);
-insert into detalle_factura(id_articulo, id_factura, cantidad, porcentaje_descuento, precio_unitario_cobrado)
-values(5, 140, 2, 10.00, 30.00);
 
 select * from detalle_factura;
 --fin insert detalle_factura
