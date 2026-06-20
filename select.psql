@@ -1,0 +1,111 @@
+--CONSULTAS SUGERIDAS
+
+--Mascotas mas atendidas por mes
+
+select 
+	extract(year from c.fecha_cita) anio,
+	extract(month from c.fecha_cita) mes,
+	m.nombre nombre_mascota,
+	count(c.id_cita) total_de_citas
+from cita c
+join mascota m on c.id_mascota = m.id_mascota 
+group by anio, mes, m.id_mascota, m.nombre 
+order by anio desc, mes desc, total_de_citas desc;
+
+--Veterinario con mayor numero de citas en el trimestre
+--Se utilizo el anio 2026
+
+select v.nombres || ' ' || v.apellidos veterinario,
+count(c.id_cita) total_citas
+from cita c join veterinario v 
+on c.id_veterinario = v.id_veterinario 	
+where c.fecha_cita between '2026-04-01' and '2026-06-30'                        --Dependiendo del trimestre se cambia la fecha
+group by v.id_veterinario, v.nombres, v.apellidos 
+order by total_citas desc limit 1;
+
+--Medicamentos preescritos con mayor frecuencia
+
+select a.id_articulo Id, a.nombre_articulo medicamento,
+count(mt.id_tratamiento ) veces_recetado
+from medicamento_tratamiento mt
+join articulo a on mt.id_articulo = a.id_articulo 
+join tipo_articulo ta on ta.id_tipo_articulo = a.id_tipo_articulo 
+where ta.tipo_nombre = 'Medicamento'                                  --podria variar dependiendo de como metieron el tipo de articulo
+group by a.id_articulo, a.nombre_articulo 
+order by veces_recetado desc;
+
+
+--Ingresos totales por especialidad de veterinaria
+
+select e.nombre especialidad, sum(f.monto_total) ingresos_totales
+from factura f
+join cita c on f.id_cita = c.id_cita 
+join veterinario v on c.id_veterinario = v.id_veterinario 
+join especialidad e on v.id_especialidad = e.id_especialidad 
+group by e.id_especialidad , e.nombre 
+order by ingresos_totales desc;
+
+--Propietarios con mascotas que no han asistido en los ultimos 6 meses
+
+select 
+from propietario p
+join mascota m on p.id_propietario = m.id_propietario 
+where not exists(
+	select 1
+	from cita c 
+	where c.id_mascota = m.id_mascota and c.fecha_cita >= '2025-12-18' --La fecha puede cambiar dependiendo de las citas que tengan
+
+
+--Las originales
+
+
+--Mascotas que nunca han tenido una cita
+
+select m.nombre mascota, e.nombre_especie especie, p.nombre || ' ' || p.apellido propietario
+from mascota m
+join especie e on m.id_especie = e.id_especie 
+join propietario p on p.id_propietario = m.id_propietario 
+left join cita c on m.id_mascota = c.id_mascota 
+where c.id_cita is null;
+
+
+--razas que no tienen ninguna mascota registrada
+
+select r.nombre_raza raza, e.nombre_especie especie, m.nombre mascota
+from mascota m
+right join raza r on m.id_raza = r.id_raza 
+join especie e on r.id_especie = e.id_especie 
+where m.id_mascota is null;
+
+--Edad promedio, minima y maxima de las mascota por especie
+
+select e.id_especie id, e.nombre_especie especie,
+count(m.id_mascota) total_mascotas,
+round(avg(m.edad), 1) edad_promedio,
+max(m.edad) edad_maxima,
+min(m.edad) edad_minima
+from mascota m
+join especie e on m.id_especie = e.id_especie 
+group by e.id_especie, e.nombre_especie;
+
+--Propietarios que tienen mas de 1 mascota
+
+select p.nombre || ' ' || p.apellido propietario,
+p.telefono telefono,
+count(m.id_mascota ) cantidad_mascotas
+from propietario p
+join mascota m on p.id_propietario = m.id_propietario 
+group by p.id_propietario, p.nombre, p.apellido, p.telefono
+having count(m.id_mascota) > 1;
+
+--facturacion total por tipo de articulo y promedio de venta
+
+select ta.tipo_nombre tipo_articulo,
+sum(df.cantidad ) unidades_vendidas,
+sum(df.cantidad * df.precio_unitario_cobrado ) total_recaudado,
+round(avg(df.precio_unitario_cobrado ), 2) precio_promedio_cobrado
+from detalle_factura df 
+join articulo a on df.id_articulo = a.id_articulo 
+join tipo_articulo ta on a.id_tipo_articulo = ta.id_tipo_articulo 
+group by ta.tipo_nombre 
+order by total_recaudado desc;
