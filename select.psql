@@ -54,7 +54,7 @@ where not exists(
 	select 1
 	from cita c 
 	where c.id_mascota = m.id_mascota and c.fecha_cita >= '2025-12-18' --La fecha puede cambiar dependiendo de las citas que tengan
-
+);
 
 --Las originales
 
