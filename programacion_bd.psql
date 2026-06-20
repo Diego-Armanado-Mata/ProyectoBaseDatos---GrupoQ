@@ -1,0 +1,268 @@
+--total factura
+
+CREATE OR REPLACE FUNCTION fn_total_factura(
+    p_id_factura INTEGER
+)
+RETURNS NUMERIC(12,2)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_total NUMERIC(12,2);
+BEGIN
+
+    SELECT monto_total
+    INTO v_total
+    FROM factura
+    WHERE id_factura = p_id_factura;
+
+    RETURN v_total;
+
+END;
+$$;
+
+
+--historial mascota
+CREATE OR REPLACE PROCEDURE sp_historial_mascota(
+    p_id_mascota INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    reg RECORD;
+BEGIN
+
+    RAISE NOTICE '===== HISTORIAL CLINICO =====';
+
+    FOR reg IN
+        SELECT
+            m.nombre AS mascota,
+            c.fecha_cita,
+            c.hora_cita,
+            d.informe,
+            t.dosis
+        FROM mascota m
+        INNER JOIN cita c
+            ON m.id_mascota = c.id_mascota
+        LEFT JOIN diagnostico d
+            ON c.id_cita = d.id_cita
+        LEFT JOIN tratamiento t
+            ON c.id_cita = t.id_cita
+        WHERE m.id_mascota = p_id_mascota
+        ORDER BY c.fecha_cita
+    LOOP
+
+        RAISE NOTICE
+        'Mascota: %, Fecha: %, Hora: %, Diagnóstico: %, Dosis: %',
+        reg.mascota,
+        reg.fecha_cita,
+        reg.hora_cita,
+        reg.informe,
+        reg.dosis;
+
+    END LOOP;
+
+END;
+$$;
+
+
+--trigger 1
+CREATE OR REPLACE FUNCTION fn_validar_fecha_cita()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+    IF NEW.fecha_cita < CURRENT_DATE THEN
+        RAISE EXCEPTION
+        'No se permiten citas en fechas anteriores a la fecha actual';
+    END IF;
+
+    RETURN NEW;
+
+END;
+$$;
+
+CREATE TRIGGER tr_validar_fecha_cita
+BEFORE INSERT OR UPDATE
+ON cita
+FOR EACH ROW
+EXECUTE FUNCTION fn_validar_fecha_cita();
+
+
+--trigger 2
+
+CREATE OR REPLACE FUNCTION fn_fecha_factura()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+    NEW.fecha_emision := CURRENT_DATE;
+
+    RETURN NEW;
+
+END;
+$$;
+
+CREATE TRIGGER tr_fecha_factura
+BEFORE INSERT
+ON factura
+FOR EACH ROW
+EXECUTE FUNCTION fn_fecha_factura();
+
+
+--datos de prueba
+
+INSERT INTO especie(nombre_especie)
+VALUES ('Perro');
+
+INSERT INTO raza(nombre_raza,id_especie)
+VALUES ('Labrador',1);
+
+INSERT INTO propietario(
+nombre,
+apellido,
+telefono,
+correo,
+direccion
+)
+VALUES
+(
+'Juan',
+'Pérez',
+'7777-7777',
+'juan@gmail.com',
+'San Salvador'
+);
+
+INSERT INTO especialidad(nombre)
+VALUES ('Medicina General');
+
+INSERT INTO veterinario(
+nombres,
+apellidos,
+carne,
+id_especialidad
+)
+VALUES
+(
+'Carlos',
+'Ramirez',
+'VET001',
+1
+);
+
+INSERT INTO mascota(
+nombre,
+edad,
+id_especie,
+id_raza,
+id_propietario
+)
+VALUES
+(
+'Max',
+5,
+1,
+1,
+1
+);
+
+
+--prueba del trigger
+
+INSERT INTO cita(
+fecha_cita,
+hora_cita,
+id_mascota,
+id_veterinario
+)
+VALUES
+(
+CURRENT_DATE,
+'10:00',
+1,
+1
+);
+
+-- Debe producir error
+/*
+INSERT INTO cita(
+fecha_cita,
+hora_cita,
+id_mascota,
+id_veterinario
+)
+VALUES
+(
+'2024-01-01',
+'10:00',
+1,
+1
+);
+*/
+
+
+--diegnostico yu tratamiento
+INSERT INTO diagnostico(
+informe,
+id_cita
+)
+VALUES
+(
+'Infección leve',
+1
+);
+
+INSERT INTO tratamiento(
+dosis,
+id_cita
+)
+VALUES
+(
+'2 tabletas cada 12 horas',
+1
+);
+
+
+--forma de pago
+INSERT INTO forma_pago(
+nombre_forma_pago
+)
+VALUES
+(
+'Efectivo'
+);
+
+
+--factura
+
+INSERT INTO factura(
+sub_total,
+descuento_total,
+impuestos_totales,
+monto_total,
+id_cita,
+id_forma_pago
+)
+VALUES
+(
+50.00,
+0.00,
+6.50,
+56.50,
+1,
+1
+);
+
+SELECT *
+FROM factura;
+
+
+--prueba de la funcion
+
+SELECT fn_total_factura(1);
+
+
+--procedimiento
+CALL sp_historial_mascota(1);
